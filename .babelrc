@@ -1,0 +1,19 @@
+{
+  "plugins": [
+    ["module-resolver", {
+      "root": ["./src"],
+      "alias": {
+        "actions": "./src/actions",
+        "middleware": "./src/middleware",
+        "routes": "./src/routes",
+        "utils": "./src/utils"
+      }
+    }],
+    ["@babel/plugin-proposal-decorators", { "legacy": true }],
+    ["@babel/plugin-proposal-class-properties", { "loose": true }]
+  ],
+  "presets": [
+    "@babel/preset-typescript",
+    "@babel/preset-env"
+  ]
+}
