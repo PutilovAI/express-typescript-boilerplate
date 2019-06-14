@@ -8,7 +8,7 @@ import { sessioner } from 'middleware';
 const NODE_ENV = process.env.NODE_ENV || 'prod';
 const APP_PORT = 8888;
 const APP_COOKIE_KEY = 'CSRF-TOKEN';
-const APP_COOKIE_LIFETIME = 1000 * 60 * 60 * 24;
+const APP_COOKIE_LIFETIME = 86400000; // 1000 * 60 * 60 * 24
 const APP_BODY_PARSER = bodyParser.raw(); // json, raw, text, urlencoded
 
 const app = express();
@@ -19,10 +19,10 @@ app.use(sessioner(APP_COOKIE_KEY, APP_COOKIE_LIFETIME));
 
 app.get('/', (req: express.Request, res: express.Response) => {
     res.json({
-        message: 'Hello World!',
         cookie_key: req.cookies[APP_COOKIE_KEY],
+        cwd: process.cwd(),
         env: NODE_ENV,
-        cwd: process.cwd()
+        message: 'Hello World!'
     });
 });
 
