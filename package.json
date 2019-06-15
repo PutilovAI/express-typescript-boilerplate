@@ -1,8 +1,7 @@
 {
   "name": "express-typescript-boilerplate",
-  "version": "0.1.0",
-  "description": "",
-  "main": "index.js",
+  "version": "0.1.1",
+  "description": "Boilerplate for express server with Typescript",
   "scripts": {
     "run-lint": "tslint -c ./tslint.prod.json -p ./tsconfig.json",
     "pre-commit-lint": "lint-staged",

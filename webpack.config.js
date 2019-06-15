@@ -9,7 +9,7 @@ const IS_DEVELOPMENT = NODE_ENV === 'development';
 const pathResolve = dir => path.resolve(__dirname, dir);
 
 const config = {
-    entry: './src/index.ts',
+    entry: './src/app.ts',
     mode: NODE_ENV,
     target: 'node',
     output: {
