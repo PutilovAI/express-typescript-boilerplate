@@ -4,13 +4,22 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build_project": "babel ./src --out-dir build --extensions '.ts'",
-    "build": "NODE_ENV=prod npm run build_project",
-    "build_pre": "NODE_ENV=pre npm run build_project",
-    "build_dev": "NODE_ENV=dev npm run build_project",
-    "start": "NODE_ENV=local nodemon --watch 'src/**/*' --exec babel-node --extensions '.ts' ./src/index.ts",
     "run-lint": "tslint -c ./tslint.prod.json -p ./tsconfig.json",
-    "pre-commit-lint": "lint-staged"
+    "pre-commit-lint": "lint-staged",
+
+    "build-run_prod": "CONFIG=prod nodemon --watch 'build/**/*' build/app.js",
+    "build-run_pre": "CONFIG=pre nodemon --watch 'build/**/*' build/app.js",
+    "build-run_dev": "CONFIG=dev nodemon --watch 'build/**/*' build/app.js",
+    "build-run_local": "CONFIG=local nodemon --watch 'build/**/*' build/app.js",
+    "build-run": "yarn build-run_local",
+
+    "build": "webpack --display-error-details",
+
+    "start_prod": "NODE_ENV=development CONFIG_ENV=prod webpack --display-error-details",
+    "start_pre": "NODE_ENV=development CONFIG_ENV=pre webpack --display-error-details",
+    "start_dev": "NODE_ENV=development CONFIG_ENV=dev webpack --display-error-details",
+    "start_local": "NODE_ENV=development CONFIG_ENV=local webpack --display-error-details",
+    "start": "yarn start_local"
   },
   "author": "Eduard Ivanov <smithjke@gmail.com>",
   "license": "MIT",
@@ -21,24 +30,22 @@
     "uuid": "3.3.2"
   },
   "devDependencies": {
-    "@babel/cli": "7.4.4",
-    "@babel/core": "7.4.5",
-    "@babel/node": "7.4.5",
-    "@babel/plugin-proposal-class-properties": "7.4.4",
-    "@babel/plugin-proposal-decorators": "7.4.4",
-    "@babel/preset-env": "7.4.5",
-    "@babel/preset-typescript": "7.3.3",
     "@types/body-parser": "1.17.0",
     "@types/cookie-parser": "1.4.1",
     "@types/express": "4.17.0",
+    "@types/node": "12.0.8",
     "@types/uuid": "3.4.4",
-    "babel-plugin-module-resolver": "3.2.0",
     "lint-staged": "8.2.1",
     "nodemon": "1.19.1",
     "pre-commit": "1.2.2",
+    "ts-loader": "6.0.2",
     "tslint": "5.17.0",
     "tslint-eslint-rules": "5.4.0",
-    "typescript": "3.5.2"
+    "typescript": "3.5.2",
+    "webpack": "4.34.0",
+    "webpack-cli": "3.3.4",
+    "webpack-node-externals": "1.7.2",
+    "webpack-shell-plugin": "0.5.0"
   },
   "pre-commit": [
     "pre-commit-lint"
