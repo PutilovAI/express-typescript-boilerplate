@@ -3,9 +3,8 @@ import cookieParser from 'cookie-parser';
 import express from 'express';
 import { sessioner } from 'middleware';
 
-// Set alias values in .babelrc so you can use imports with absolute paths
-
-const NODE_ENV = process.env.NODE_ENV || 'prod';
+const NODE_ENV = process.env.NODE_ENV || 'production';
+const CONFIG = process.env.CONFIG || 'prod';
 const APP_PORT = 8888;
 const APP_COOKIE_KEY = 'CSRF-TOKEN';
 const APP_COOKIE_LIFETIME = 86400000; // 1000 * 60 * 60 * 24
@@ -19,6 +18,7 @@ app.use(sessioner(APP_COOKIE_KEY, APP_COOKIE_LIFETIME));
 
 app.get('/', (req: express.Request, res: express.Response) => {
     res.json({
+        config: CONFIG,
         cookie_key: req.cookies[APP_COOKIE_KEY],
         cwd: process.cwd(),
         env: NODE_ENV,
