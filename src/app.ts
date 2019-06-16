@@ -1,3 +1,4 @@
+import { apiJsonRpcRouter } from 'api-json-rpc';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import express from 'express';
@@ -8,14 +9,15 @@ const CONFIG = process.env.CONFIG || 'prod';
 const APP_PORT = 8888;
 const APP_COOKIE_KEY = 'CSRF-TOKEN';
 const APP_COOKIE_LIFETIME = 86400000; // 1000 * 60 * 60 * 24
-const APP_BODY_PARSER = bodyParser.raw(); // json, raw, text, urlencoded
 
 const app = express();
 
 app.use(cookieParser());
-app.use(APP_BODY_PARSER);
 app.use(sessioner(APP_COOKIE_KEY, APP_COOKIE_LIFETIME));
 
+app.use('/api', apiJsonRpcRouter);
+
+app.use('/', bodyParser.raw());
 app.get('/', (req: express.Request, res: express.Response) => {
     res.json({
         config: CONFIG,
