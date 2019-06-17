@@ -11,6 +11,14 @@ import uuid from 'uuid';
  */
 
 const JSONRPC_VERSION = '2.0';
+const JSONRPC_ID_NULL = null;
+
+const JSONRPC_FIELD_NAME_JSONRPC = 'jsonrpc';
+const JSONRPC_FIELD_NAME_METHOD = 'method';
+const JSONRPC_FIELD_NAME_PARAMS = 'params';
+const JSONRPC_FIELD_NAME_ID = 'id';
+const JSONRPC_FIELD_NAME_RESULT = 'result';
+const JSONRPC_FIELD_NAME_ERROR = 'error';
 
 const JSONRPC_PARSE_ERROR_CODE = -32700;
 const JSONRPC_PARSE_ERROR_MESSAGE = 'Parse error';
@@ -167,20 +175,68 @@ export function createJsonrpcResponseError(error: JsonrpcError, id: JsonrpcID): 
 }
 
 /**
+ * Parse body object to valid jsonrpc format or return null
+ */
+export function jsonrpcParseBody(body: object): JsonrpcRequest | null {
+    if (!body[JSONRPC_FIELD_NAME_JSONRPC] || body[JSONRPC_FIELD_NAME_JSONRPC] !== JSONRPC_VERSION) return null;
+    if (!body[JSONRPC_FIELD_NAME_METHOD]) return null;
+
+    const request = createPartialJsonrpcRequest(body[JSONRPC_FIELD_NAME_METHOD]);
+
+    if (body[JSONRPC_FIELD_NAME_PARAMS]) request.params = body[JSONRPC_FIELD_NAME_PARAMS];
+    if (body[JSONRPC_FIELD_NAME_ID]) request.id = body[JSONRPC_FIELD_NAME_ID];
+
+    return request as JsonrpcRequest;
+}
+
+/**
+ * Handle errors when parsing json in top level middleware
+ */
+export function jsonrpcErrorHandler(err: object, req: Request, res: Response, next: NextFunction): void {
+    if (err) {
+        res.json(createJsonrpcResponseError(
+            createJsonrpcErrorParseError(),
+            JSONRPC_ID_NULL
+        ));
+
+        return;
+    }
+
+    next();
+}
+
+/**
  * Make RequestHandler that calls jsonrpc actions
  */
 export function jsonrpcRouter(actions: object): RequestHandler {
     return (req: Request, res: Response, next: NextFunction): void => {
-        console.log(req.cookies);
-        console.log(req.body);
+        const request = jsonrpcParseBody(req.body);
 
-        const key = req.body.method || null;
-        const id = req.body.id || null;
+        if (!request) {
+            res.json(createJsonrpcResponseError(
+                createJsonrpcErrorInvalidRequest(),
+                JSONRPC_ID_NULL
+            ));
 
-        if (actions[key]) {
-            return actions[key](req, res, next);
+            return;
         }
 
-        res.json(createJsonrpcResponseError(createJsonrpcErrorMethodNotFound(), id));
+        if (actions[request.method]) {
+            try {
+                actions[request.method](req, res, next);
+            } catch (e) {
+                res.json(createJsonrpcResponseError(
+                    createJsonrpcErrorInternalError(),
+                    request.id || JSONRPC_ID_NULL
+                ));
+            }
+
+            return;
+        }
+
+        res.json(createJsonrpcResponseError(
+            createJsonrpcErrorMethodNotFound(),
+            request.id || JSONRPC_ID_NULL
+        ));
     };
 }
