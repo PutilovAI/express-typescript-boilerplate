@@ -12,6 +12,7 @@ import uuid from 'uuid';
 
 const JSONRPC_VERSION = '2.0';
 const JSONRPC_ID_NULL = null;
+const JSONRPC_ID_UNDEFINED_MESSAGE = 'No ID';
 
 const JSONRPC_FIELD_NAME_JSONRPC = 'jsonrpc';
 const JSONRPC_FIELD_NAME_METHOD = 'method';
@@ -110,8 +111,8 @@ export function createJsonrpcErrorInvalidParams(): JsonrpcError {
 /**
  * Create INTERNAL ERROR JsonrpcError object
  */
-export function createJsonrpcErrorInternalError(): JsonrpcError {
-    return createJsonrpcError(JSONRPC_INTERNAL_ERROR_CODE, JSONRPC_INTERNAL_ERROR_MESSAGE);
+export function createJsonrpcErrorInternalError(data?: JsonrpcErrorData): JsonrpcError {
+    return createJsonrpcError(JSONRPC_INTERNAL_ERROR_CODE, JSONRPC_INTERNAL_ERROR_MESSAGE, data);
 }
 
 /**
@@ -149,14 +150,27 @@ export function createJsonrpcNotification(method: string, params?: JsonrpcParams
 }
 
 /**
+ * Create PARTIAL JsonrpcResponse object
+ */
+function createPartialJsonrpcResponse(id: JsonrpcID): Partial<JsonrpcResponse> {
+    const response = Object.create(null) as JsonrpcResponse;
+
+    if (typeof id === 'undefined') {
+        throw Error(JSONRPC_ID_UNDEFINED_MESSAGE);
+    }
+
+    response.jsonrpc = JSONRPC_VERSION;
+    response.id = id;
+
+    return response;
+}
+
+/**
  * Create SUCCESS JsonrpcResponse object
  */
 export function createJsonrpcResponseSuccess(result: JsonrpcResult, id: JsonrpcID): JsonrpcResponse {
-    const response = Object.create(null) as JsonrpcResponse;
-
-    response.jsonrpc = JSONRPC_VERSION;
+    const response = createPartialJsonrpcResponse(id) as JsonrpcResponse;
     response.result = result;
-    response.id = id;
 
     return response;
 }
@@ -165,11 +179,8 @@ export function createJsonrpcResponseSuccess(result: JsonrpcResult, id: JsonrpcI
  * Create ERROR JsonrpcResponse object
  */
 export function createJsonrpcResponseError(error: JsonrpcError, id: JsonrpcID): JsonrpcResponse {
-    const response = Object.create(null) as JsonrpcResponse;
-
-    response.jsonrpc = JSONRPC_VERSION;
+    const response = createPartialJsonrpcResponse(id) as JsonrpcResponse;
     response.error = error;
-    response.id = id;
 
     return response;
 }
@@ -223,10 +234,11 @@ export function jsonrpcRouter(actions: object): RequestHandler {
 
         if (actions[request.method]) {
             try {
+                req.body = request;
                 actions[request.method](req, res, next);
             } catch (e) {
                 res.json(createJsonrpcResponseError(
-                    createJsonrpcErrorInternalError(),
+                    createJsonrpcErrorInternalError(e.message),
                     request.id || JSONRPC_ID_NULL
                 ));
             }
