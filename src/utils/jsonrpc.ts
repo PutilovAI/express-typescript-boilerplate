@@ -219,11 +219,10 @@ export function jsonrpcErrorHandler(err: object, req: Request, res: Response, ne
 }
 
 /**
- * Make RequestHandler that calls jsonrpc actions
+ * Handle requests
  */
-export function jsonrpcRouter(actions: object): Array<RequestHandler | ErrorRequestHandler> {
-    return [bodyParser.json(), jsonrpcErrorHandler, (req: Request, res: Response, next: NextFunction): void => {
-
+function createJsonrpcRequestHandler(actions: object): RequestHandler {
+    return (req: Request, res: Response, next: NextFunction): void => {
         const request = jsonrpcParseBody(req.body);
 
         if (!request) {
@@ -253,5 +252,16 @@ export function jsonrpcRouter(actions: object): Array<RequestHandler | ErrorRequ
             createJsonrpcErrorMethodNotFound(),
             request.id || JSONRPC_ID_NULL
         ));
-    }];
+    };
+}
+
+/**
+ * Make RequestHandler that calls jsonrpc actions
+ */
+export function jsonrpcRouter(actions: object): Array<RequestHandler | ErrorRequestHandler> {
+    return [
+        bodyParser.json(),
+        jsonrpcErrorHandler,
+        createJsonrpcRequestHandler(actions)
+    ];
 }
